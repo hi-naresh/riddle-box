@@ -1,11 +1,25 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    school: { type: String, required: true },
-    puzzleSolved: { type: Boolean, default: false }
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  qrCode: {
+    type: String,
+  },
+  stage: {
+    type: String,
+    enum : ['stage1','stage2','completed','failed'],
+    default: 'stage1'
+  }
+}, {
+  timestamps: true,
 });
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', UserSchema);

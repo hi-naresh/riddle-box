@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import QrCard from './QrCard';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 
 function FormQrCustom({ qrRef, url, qrColor, qrBgColor, noImg, setUrl, setQrColor, setQrBgColor, setCustomImg, setNoImg, handleQrReset }) {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [isValid, setIsValid] = useState(false);
-    const [showQR, setShowQR] = useState(false); // Added this state
+    const [showQR, setShowQR] = useState(false);
+
+    const db = firebase.firestore();
 
     const emailRgx = /^[a-zA-Z0-9._%+-]+@aurouniversity\.edu\.in$/;
     const fullNameRgx = /^[a-zA-Z]+ [a-zA-Z]+$/;
 
-    const httpRgx = /^https?:\/\//;  // Define it here
+    const httpRgx = /^https?:\/\//; 
 
     useEffect(() => {
         setIsValid(emailRgx.test(email) && fullNameRgx.test(fullName));
@@ -19,12 +24,27 @@ function FormQrCustom({ qrRef, url, qrColor, qrBgColor, noImg, setUrl, setQrColo
     const handleSubmit = e => {
         e.preventDefault();
         if(isValid) {
-            // Show QR code
+            // const qrCodeString = generateQrCodeString(email);  // You need to define this function
+
             setShowQR(true);
+            db.collection("users").add({
+                name: fullName,
+                email: email,
+                // qrCode: qrCodeString,  // Save QR code string
+                stage: 'stage1'  // Save initial stage status
+            })
+            .then((docRef) => {
+                console.log("Document written with ID: ", docRef.id);
+                setShowQR(true);
+            })
+            .catch((error) => {
+                console.error("Error adding document: ", error);
+            });
         } else {
             alert('Please enter valid information.');
         }
     }
+    
 
     const downloadQrCode = () => {
         const qrCanvas = qrRef.current.querySelector('canvas'),
@@ -39,7 +59,6 @@ function FormQrCustom({ qrRef, url, qrColor, qrBgColor, noImg, setUrl, setQrColo
         document.body.removeChild(qrAnchor);
 
         handleQrReset();
-        // setShowQR(false); // Hide QR code after download
     }
 
     return(
@@ -48,7 +67,7 @@ function FormQrCustom({ qrRef, url, qrColor, qrBgColor, noImg, setUrl, setQrColo
                 <center><h1>Register only <br></br> if you're smart</h1></center>
                 <label htmlFor="text">Full Name</label>
                 <input
-					style={{marginTop: '10px'}}
+                    style={{marginTop: '10px'}}
                     type="text"
                     placeholder="Full Name"
                     value={fullName}
@@ -57,7 +76,7 @@ function FormQrCustom({ qrRef, url, qrColor, qrBgColor, noImg, setUrl, setQrColo
                 <label htmlFor="email">Email (*only Auro id)</label>
 
                 <input
-					style={{marginTop: '10px'}}
+                    style={{marginTop: '10px'}}
                     type="email"
                     placeholder="Email"
                     value={email}
